@@ -217,3 +217,87 @@ Uploaded documents are processed to extract content and organize it for efficien
 
 - **Document ingestion status:** PENDING → PARSING → INDEXED → ERROR
 - **Project impact:** ALL_DOCS projects marked OUTDATED → eligible for regeneration
+
+## Questionnaire Parsing & Project Lifecycle
+
+Questionnaires define the set of questions to be answered against a selected document scope. The system supports structured and semi-structured questionnaire formats and preserves their original organization and ordering.
+
+### Questionnaire Parsing
+
+Questionnaires may be uploaded in various formats (e.g. DOCX, XLSX, PDF). The parsing process extracts a structured representation while retaining contextual information.
+
+Parsing responsibilities include:
+
+- Detecting sections and subsections
+- Extracting individual questions
+- Preserving original question order and section hierarchy
+- Normalizing question text for downstream processing
+
+Each parsed questionnaire is stored as a `Questionnaire` entity, with individual `Question` entities created for each extracted question.
+
+### Handling Complex Question Structures
+
+The parser supports common due diligence patterns, including:
+
+- Multi-part questions (e.g. 1.a, 1.b, 1.c)
+- Binary (Yes/No) questions with follow-up explanations
+- Free-text and table-based question layouts
+
+Multi-part questions are either:
+
+- Represented as separate `Question` entities linked by shared section context, or
+- Treated as a single composite question when answers are expected to be provided together
+
+The chosen representation is configurable at project creation time.
+
+### Project Creation
+
+A `Project` represents a single questionnaire execution against a defined document scope.
+
+During project creation, the user specifies:
+
+- A questionnaire
+- A document scope (specific document IDs or `ALL_DOCS`)
+
+Project creation is asynchronous and progresses through defined lifecycle states.
+
+### Project Preparation & Lifecycle
+
+Once created, a project undergoes the following steps:
+
+1. **CREATED**  
+   Project metadata is stored and validation checks are performed.
+
+2. **INDEXING**  
+   The system verifies that all required documents are fully ingested and indexed.  
+   If indexing is incomplete, the project remains in this state until dependencies are resolved.
+
+3. **READY**  
+   The project is eligible for answer generation.
+
+4. **OUTDATED**  
+   The project is marked outdated when:
+   - New documents are ingested and the scope is `ALL_DOCS`
+   - The document scope or questionnaire configuration changes
+
+5. **COMPLETED**  
+   All questions have generated answers and the project has passed initial processing.
+
+### Automatic Regeneration Triggers
+
+Projects in the `OUTDATED` state are eligible for regeneration. Regeneration may be triggered:
+
+- Automatically upon document ingestion (for `ALL_DOCS` projects)
+- Manually by a user
+- Programmatically via an API
+
+Regeneration reuses the existing questionnaire structure while re-running answer generation using the latest document index.
+
+### Status Visibility & Error Handling
+
+Project status updates are exposed to users to support transparency in asynchronous processing.
+
+If parsing or preparation fails:
+
+- The project is moved to an error state
+- Error details are recorded for debugging and user feedback
