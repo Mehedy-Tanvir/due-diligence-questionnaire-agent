@@ -175,3 +175,45 @@ Allowed transitions:
 - GENERATED → MANUAL_UPDATED
 - GENERATED → MISSING_DATA
 - MANUAL_UPDATED → CONFIRMED
+
+## Document Ingestion & Indexing
+
+Uploaded documents are processed to extract content and organize it for efficient retrieval. The system supports multiple file formats and maintains a structured index to enable both semantic search and precise citations.
+
+### Multi-Format Parsing
+
+- **Supported formats:** PDF, DOCX, XLSX, PPTX
+- **Parsing approach:**
+  - Extract textual content and structural metadata (headings, tables, bullet points)
+  - Retain page numbers, table coordinates, and other location references
+  - Normalize text for consistent indexing (remove formatting noise, handle line breaks, etc.)
+
+### Chunking
+
+- Documents are split into manageable chunks to improve retrieval efficiency:
+  - Typical chunk size: 300–500 words (configurable)
+  - Each chunk includes:
+    - Source document ID
+    - Page number
+    - Chunk sequence index
+    - Optional bounding boxes or table coordinates for precise citation
+
+### Two-Layer Index
+
+1. **Answer Retrieval Layer**
+   - Supports semantic search across sections or chunks
+   - Optimized for quickly finding candidate chunks relevant to a question
+
+2. **Citation Layer**
+   - Stores chunk-level references with exact positions (page, table, paragraph)
+   - Enables precise citation in generated answers
+
+### ALL_DOCS Invalidation
+
+- Projects configured to use `ALL_DOCS` automatically become `OUTDATED` when new documents are ingested
+- Ensures subsequent answer generation considers the latest documents
+
+### Status Flow
+
+- **Document ingestion status:** PENDING → PARSING → INDEXED → ERROR
+- **Project impact:** ALL_DOCS projects marked OUTDATED → eligible for regeneration
