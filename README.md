@@ -14,3 +14,31 @@ Each generated answer includes:
 The system supports human review and manual overrides, preserving both AI-generated and human-edited answers for auditability. It also provides an evaluation mechanism to compare AI answers against human ground-truth responses.
 
 This document describes the system design, data models, workflows, and tradeoffs at a skeleton level. It focuses on clarity and correctness rather than production implementation details.
+
+## End-to-End Workflow
+
+The system follows a clear, asynchronous workflow from document ingestion to answer evaluation:
+
+1. **Document Upload**  
+   Users upload reference documents such as PDFs, Word files, spreadsheets, or presentations. Each document is associated with an organization and stored with basic metadata (name, type, upload time).
+
+2. **Document Ingestion & Indexing**  
+   Uploaded documents are parsed to extract text and structural information. The extracted content is split into manageable chunks and indexed for retrieval. A multi-layer index is maintained to support both semantic search and precise citation at the document section or page level.
+
+3. **Questionnaire Upload & Parsing**  
+   Users upload a questionnaire file containing sections and questions. The system parses the file into a structured representation, preserving question order and section hierarchy.
+
+4. **Project Creation**  
+   A questionnaire project is created linking the uploaded questionnaire with a selected document scope (specific documents or ALL_DOCS). Project creation and preparation occur asynchronously, with status updates exposed to the user.
+
+5. **Answer Generation (Asynchronous)**  
+   For each parsed question, the system retrieves relevant document chunks, determines whether the question can be answered, and generates a draft answer. Each answer includes supporting citations and a confidence score.
+
+6. **Human Review & Manual Overrides**  
+   Generated answers are presented for human review. Reviewers can confirm, reject, or manually edit answers. Manual responses are stored alongside AI-generated outputs, preserving an audit trail.
+
+7. **Evaluation Against Ground Truth**  
+   When ground-truth answers are available, the system evaluates AI-generated answers against human responses and produces quantitative scores and qualitative feedback.
+
+8. **Regeneration on Change**  
+   If new documents are uploaded or project configuration changes, affected projects are marked as outdated and eligible for regeneration, ensuring answers remain consistent with the latest data.
