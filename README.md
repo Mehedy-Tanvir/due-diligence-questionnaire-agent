@@ -42,3 +42,136 @@ The system follows a clear, asynchronous workflow from document ingestion to ans
 
 8. **Regeneration on Change**  
    If new documents are uploaded or project configuration changes, affected projects are marked as outdated and eligible for regeneration, ensuring answers remain consistent with the latest data.
+
+## Core Data Models & Statuses
+
+This section describes the primary entities in the system and their lifecycle states. The models are conceptual and intended to illustrate structure and behavior rather than implementation details.
+
+### Core Entities
+
+**Project**
+
+- id
+- name
+- questionnaireId
+- documentScope (specific document IDs or ALL_DOCS)
+- status
+- createdAt
+- updatedAt
+
+A Project represents a single questionnaire run against a defined set of documents.
+
+---
+
+**Document**
+
+- id
+- filename
+- fileType (PDF, DOCX, XLSX, PPTX)
+- uploadTime
+- ingestionStatus
+- metadata (page count, source, etc.)
+
+Documents serve as the source of truth for answer generation and citation.
+
+---
+
+**Questionnaire**
+
+- id
+- sourceFile
+- sectionCount
+- questionCount
+- createdAt
+
+Represents the uploaded questionnaire file and its parsed structure.
+
+---
+
+**Question**
+
+- id
+- questionnaireId
+- sectionTitle
+- orderIndex
+- text
+
+Each Question belongs to a questionnaire and preserves its original ordering and section context.
+
+---
+
+**Answer**
+
+- id
+- questionId
+- projectId
+- answerText
+- answerable (true / false / partial)
+- confidenceScore
+- status
+- citations
+- createdAt
+- updatedAt
+
+Stores the AI-generated answer and its review state.
+
+---
+
+**Citation**
+
+- documentId
+- chunkId
+- pageNumber
+- boundingBox (optional)
+- excerpt
+
+Citations link specific answer statements to exact locations in source documents.
+
+---
+
+**EvaluationResult**
+
+- id
+- answerId
+- groundTruthText
+- similarityScore
+- explanation
+- evaluatedAt
+
+Represents the comparison between AI-generated answers and human ground-truth responses.
+
+---
+
+### Status & State Transitions
+
+**Project Status**
+
+- CREATED
+- INDEXING
+- READY
+- OUTDATED
+- COMPLETED
+
+Allowed transitions:
+
+- CREATED → INDEXING → READY
+- READY → OUTDATED (on document or configuration change)
+- READY → COMPLETED
+
+---
+
+**Answer Status**
+
+- GENERATED
+- CONFIRMED
+- REJECTED
+- MANUAL_UPDATED
+- MISSING_DATA
+
+Allowed transitions:
+
+- GENERATED → CONFIRMED
+- GENERATED → REJECTED
+- GENERATED → MANUAL_UPDATED
+- GENERATED → MISSING_DATA
+- MANUAL_UPDATED → CONFIRMED
