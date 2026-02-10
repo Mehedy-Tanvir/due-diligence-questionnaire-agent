@@ -301,3 +301,82 @@ If parsing or preparation fails:
 
 - The project is moved to an error state
 - Error details are recorded for debugging and user feedback
+
+## Answer Generation with Citations & Confidence
+
+Answer generation is performed asynchronously for each question in a project once the project reaches the `READY` state. The process combines document retrieval, answerability assessment, and answer synthesis to produce auditable draft responses.
+
+### Retrieval Strategy
+
+For each question, the system retrieves relevant document chunks from the indexed corpus using the answer retrieval layer.
+
+Retrieval behavior includes:
+
+- Semantic search across chunk embeddings
+- Optional keyword or section-based filtering
+- Limiting results to the project’s document scope
+
+The top-K most relevant chunks are selected as candidate evidence for answer generation.
+
+### Answerability Assessment
+
+Before generating an answer, the system determines whether the question can be answered using the retrieved content.
+
+Each question is classified as:
+
+- **Answerable (TRUE):** sufficient evidence exists to support a complete answer
+- **Partially Answerable (PARTIAL):** some relevant information exists, but gaps remain
+- **Not Answerable (FALSE):** no relevant content is found in the document corpus
+
+This classification is based on:
+
+- Retrieval confidence scores
+- Coverage of required facts or entities
+- Consistency across retrieved chunks
+
+### Answer Synthesis
+
+If a question is classified as answerable or partially answerable, the system generates a draft answer grounded strictly in the retrieved content.
+
+Generation rules include:
+
+- Use only retrieved chunks as source material
+- Avoid introducing information not present in the documents
+- Explicitly state limitations or missing data for partial answers
+
+If a question is not answerable, the system generates a standardized response indicating that the required information is not available in the uploaded documents.
+
+### Citation Generation
+
+Each generated answer includes one or more citations linking specific statements to their source document locations.
+
+Citations reference:
+
+- Document ID
+- Chunk ID
+- Page number or section identifier
+- Optional bounding box or table coordinates
+
+Citations are attached at the answer level and may also be associated with specific answer segments for finer-grained traceability.
+
+### Confidence Scoring
+
+A confidence score is computed for each generated answer to represent the system’s certainty.
+
+The confidence score is derived from:
+
+- Retrieval relevance scores
+- Answerability classification
+- Consistency of supporting evidence
+
+Confidence scores are normalized to a fixed range and are intended to guide human reviewers rather than serve as absolute correctness guarantees.
+
+### Failure & Fallback Behavior
+
+If retrieval returns no relevant chunks:
+
+- The question is marked as not answerable
+- The answer status is set to `MISSING_DATA`
+- Confidence score is set to a minimal value
+
+Errors during generation are captured and surfaced through answer status and logs, without blocking processing of other questions.
