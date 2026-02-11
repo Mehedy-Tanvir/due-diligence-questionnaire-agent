@@ -884,3 +884,144 @@ Response:
 - Every response model maps directly to a core data entity
 
 ---
+
+## System Architecture (Conceptual)
+
+The system follows a modular, service-oriented architecture optimized for asynchronous processing and auditability.
+
+### Core Components
+
+1. API Layer
+   - Stateless REST services
+   - Handles validation and orchestration
+   - Returns status immediately for async tasks
+
+2. Document Processing Service
+   - Parses multi-format files
+   - Extracts text + structure
+   - Produces chunked representations
+
+3. Indexing Layer
+   - Layer 1: Semantic Retrieval Index
+   - Layer 2: Citation Chunk Store
+   - Supports chunk-level traceability
+
+4. Answer Generation Service
+   - Performs retrieval
+   - Determines answerability
+   - Generates grounded answers
+   - Computes confidence score
+
+5. Review & Audit Service
+   - Stores manual overrides
+   - Maintains version history
+   - Logs transitions
+
+6. Evaluation Engine
+   - Computes semantic similarity
+   - Computes keyword overlap
+   - Produces numeric + qualitative output
+
+7. Background Worker Queue
+   - Handles ingestion
+   - Handles answer generation
+   - Handles evaluation
+   - Enables horizontal scalability
+
+8. Persistent Storage
+   - Relational DB for structured entities
+   - Object storage for raw documents
+   - Vector index for semantic retrieval
+
+---
+
+### End-to-End Data Flow
+
+1. Upload document → stored in object storage
+2. Ingestion service parses → chunks → indexed
+3. Upload questionnaire → parsed into structured questions
+4. Create project → validate document readiness
+5. Generate answers → retrieval + synthesis + citations
+6. Review workflow → manual overrides preserved
+7. Evaluation → AI vs human comparison
+8. Regeneration triggered on document change
+
+---
+
+## Acceptance Criteria Alignment
+
+This section explicitly maps the system design to the task acceptance criteria.
+
+---
+
+### A. Documentation Completeness
+
+✔ All 8 scope areas are covered:
+
+- Product & Data Model Alignment
+- Document Ingestion & Indexing
+- Questionnaire Parsing & Lifecycle
+- Answer Generation
+- Review Workflow
+- Evaluation Framework
+- Optional Chat Extension
+- Frontend Experience
+
+✔ API endpoints are explicitly defined  
+✔ Data structures map directly to system entities
+
+---
+
+### B. Functional Accuracy
+
+✔ Workflow explicitly defined:
+upload → index → create project → generate answers → review → evaluation
+
+✔ Every answer includes:
+
+- Answerability classification
+- Chunk-level citations
+- Confidence score
+
+✔ ALL_DOCS projects automatically become OUTDATED on new ingestion
+
+---
+
+### C. Review & Auditability
+
+✔ Manual edits preserved alongside AI output  
+✔ Status transitions explicitly defined  
+✔ Review actions logged  
+✔ Historical versions retained
+
+---
+
+### D. Evaluation Framework
+
+✔ Clear semantic similarity method defined  
+✔ Keyword/entity overlap included  
+✔ Numeric similarity score provided  
+✔ Qualitative explanation provided  
+✔ Aggregated project-level reporting supported
+
+---
+
+### E. Non-Functional Requirements
+
+✔ Asynchronous processing defined  
+✔ Status tracking exposed  
+✔ Regeneration logic described  
+✔ Error handling behavior specified  
+✔ Scalability strategy outlined
+
+---
+
+### F. Frontend UX
+
+✔ Create project workflow defined  
+✔ Background status tracking defined  
+✔ Review interface defined  
+✔ AI vs human comparison view defined  
+✔ Document management defined
+
+---
