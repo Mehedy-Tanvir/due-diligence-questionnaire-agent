@@ -543,3 +543,42 @@ To avoid conflicting with questionnaire workflows:
 Chat is read-only with respect to questionnaire state.
 
 ---
+
+## Frontend Experience (High-Level)
+
+The frontend provides clear workflows aligned with the asynchronous backend architecture.
+
+### Core Screens
+
+1. **Project List**
+   - List of questionnaire projects
+   - Status indicators (CREATED, INDEXING, READY, OUTDATED, COMPLETED)
+   - Filters by status and date
+
+2. **Project Detail View**
+   - Questionnaire structure (sections + ordered questions)
+   - Per-question answer status
+   - Regenerate button (if OUTDATED)
+   - Evaluation summary (if available)
+
+3. **Question Review Panel**
+   - Displays:
+     - Question text
+     - AI answer
+     - Answerability classification
+     - Citations (clickable to source location)
+     - Confidence score
+   - Reviewer actions (Confirm / Reject / Edit / Mark Missing)
+
+4. **Document Management**
+   - Upload documents
+   - View ingestion status (PENDING → PARSING → INDEXED → ERROR)
+   - View metadata
+   - Delete or replace documents
+
+5. **Evaluation Report View**
+   - Per-question similarity scores
+   - Aggregated project-level metrics
+   - Qualitative explanations
+
+---
