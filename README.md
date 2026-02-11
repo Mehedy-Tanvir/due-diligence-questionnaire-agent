@@ -454,3 +454,62 @@ This allows:
 5. Final project may move to `COMPLETED` once review is finished
 
 ---
+
+## Evaluation Framework
+
+The system supports evaluation of AI-generated answers against human ground-truth responses.
+
+Evaluation is optional but required for benchmarking and quality measurement.
+
+### Evaluation Inputs
+
+- AI-generated answer
+- Human ground-truth answer
+- Associated citations
+
+### Evaluation Methodology
+
+Evaluation combines multiple comparison techniques:
+
+1. **Semantic Similarity**
+   - Embedding-based similarity between AI and human answers
+   - Captures meaning equivalence even if wording differs
+
+2. **Keyword / Entity Overlap**
+   - Checks presence of critical entities, dates, numbers, and obligations
+   - Ensures factual completeness
+
+3. **Structural Completeness**
+   - Verifies whether required sub-parts of the question are addressed
+
+### Evaluation Outputs
+
+Each `EvaluationResult` includes:
+
+- similarityScore (normalized numeric score)
+- explanation (qualitative reasoning)
+- coverage indicators (optional structured metrics)
+- evaluatedAt timestamp
+
+### Reporting
+
+Evaluation results can be aggregated:
+
+- Per Question
+- Per Section
+- Per Project
+
+Example aggregate metrics:
+
+- Average similarity score
+- Percentage of CONFIRMED answers
+- Percentage of MISSING_DATA answers
+- Partial vs fully answerable distribution
+
+Evaluation reports support:
+
+- Model improvement
+- QA benchmarking
+- Transparency in AI performance
+
+---
