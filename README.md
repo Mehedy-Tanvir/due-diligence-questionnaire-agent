@@ -582,3 +582,76 @@ The frontend provides clear workflows aligned with the asynchronous backend arch
    - Qualitative explanations
 
 ---
+
+## Non-Functional Requirements
+
+### Asynchronous Processing
+
+The system is designed for background processing:
+
+- Document ingestion is asynchronous
+- Project preparation is asynchronous
+- Answer generation runs in background jobs
+- Evaluation runs asynchronously
+
+All long-running tasks expose status fields to the frontend.
+
+### Scalability
+
+The system must support:
+
+- Large document sets
+- Long questionnaires (100+ questions)
+- Concurrent project processing
+- Efficient chunk-level retrieval
+
+Horizontal scaling is enabled through:
+
+- Stateless API services
+- Background worker queues
+- Distributed indexing system
+
+### Error Handling
+
+Failures do not block the entire workflow.
+
+Examples:
+
+- If one question fails generation, others continue
+- Parsing errors move entity to ERROR state
+- Errors are logged and exposed via status fields
+
+### Regeneration Logic
+
+Projects are marked `OUTDATED` when:
+
+- New documents are indexed and scope is `ALL_DOCS`
+- Document scope changes
+- Questionnaire structure changes
+
+Regeneration:
+
+- Reuses questionnaire structure
+- Re-runs retrieval and answer generation
+- Preserves historical answers for comparison
+
+### Security & Access Control
+
+- Projects are scoped to an organization
+- Documents are accessible only within authorized scope
+- Review actions are logged with user identity
+- Evaluation results are read-only once finalized
+
+### Auditability
+
+The system preserves:
+
+- Original AI outputs
+- Manual edits
+- Status transitions
+- Evaluation history
+- Citation references
+
+This ensures traceability for compliance and regulatory contexts.
+
+---
