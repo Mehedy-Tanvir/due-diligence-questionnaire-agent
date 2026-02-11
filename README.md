@@ -1025,3 +1025,33 @@ upload → index → create project → generate answers → review → evaluati
 ✔ Document management defined
 
 ---
+
+## Design Tradeoffs & Assumptions
+
+### Tradeoffs
+
+- Chunk-level citation increases storage overhead but improves auditability.
+- Asynchronous processing improves scalability but increases state complexity.
+- Strict grounding reduces hallucination but may produce more "PARTIAL" answers.
+
+### Assumptions
+
+- Documents are primarily textual and machine-readable.
+- Organization-level isolation is enforced.
+- Human review is required before external submission.
+- Evaluation is for benchmarking, not automated rejection.
+
+---
+
+## Conclusion
+
+This system design provides:
+
+- Full traceability from answer to source document
+- Clear lifecycle and regeneration logic
+- Human-in-the-loop governance
+- Quantitative evaluation framework
+- Asynchronous scalable architecture
+- Explicit API contracts aligned with data models
+
+The design prioritizes correctness, auditability, and enterprise reliability over implementation shortcuts, making it suitable for compliance-driven environments such as due diligence, regulatory review, and enterprise risk assessment.
