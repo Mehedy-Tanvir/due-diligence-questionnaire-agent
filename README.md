@@ -15,6 +15,8 @@ The system supports human review and manual overrides, preserving both AI-genera
 
 This document describes the system design, data models, workflows, and tradeoffs at a skeleton level. It focuses on clarity and correctness rather than production implementation details.
 
+---
+
 ## End-to-End Workflow
 
 The system follows a clear, asynchronous workflow from document ingestion to answer evaluation:
@@ -42,6 +44,8 @@ The system follows a clear, asynchronous workflow from document ingestion to ans
 
 8. **Regeneration on Change**  
    If new documents are uploaded or project configuration changes, affected projects are marked as outdated and eligible for regeneration, ensuring answers remain consistent with the latest data.
+
+---
 
 ## Core Data Models & Statuses
 
@@ -176,6 +180,8 @@ Allowed transitions:
 - GENERATED → MISSING_DATA
 - MANUAL_UPDATED → CONFIRMED
 
+---
+
 ## Document Ingestion & Indexing
 
 Uploaded documents are processed to extract content and organize it for efficient retrieval. The system supports multiple file formats and maintains a structured index to enable both semantic search and precise citations.
@@ -217,6 +223,8 @@ Uploaded documents are processed to extract content and organize it for efficien
 
 - **Document ingestion status:** PENDING → PARSING → INDEXED → ERROR
 - **Project impact:** ALL_DOCS projects marked OUTDATED → eligible for regeneration
+
+---
 
 ## Questionnaire Parsing & Project Lifecycle
 
@@ -302,6 +310,8 @@ If parsing or preparation fails:
 - The project is moved to an error state
 - Error details are recorded for debugging and user feedback
 
+---
+
 ## Answer Generation with Citations & Confidence
 
 Answer generation is performed asynchronously for each question in a project once the project reaches the `READY` state. The process combines document retrieval, answerability assessment, and answer synthesis to produce auditable draft responses.
@@ -380,3 +390,67 @@ If retrieval returns no relevant chunks:
 - Confidence score is set to a minimal value
 
 Errors during generation are captured and surfaced through answer status and logs, without blocking processing of other questions.
+
+---
+
+## Review Workflow & Manual Overrides
+
+The system includes a structured human-in-the-loop review workflow to ensure correctness, compliance, and auditability.
+
+AI-generated answers are never treated as final outputs without optional human validation.
+
+### Review States
+
+Each `Answer` progresses through defined review states:
+
+- GENERATED
+- CONFIRMED
+- REJECTED
+- MANUAL_UPDATED
+- MISSING_DATA
+
+### Review Actions
+
+Reviewers can perform the following actions:
+
+1. **Confirm**
+   - Marks the answer as `CONFIRMED`
+   - Indicates the AI answer is acceptable without changes
+
+2. **Reject**
+   - Marks the answer as `REJECTED`
+   - Used when the AI output is incorrect or irrelevant
+
+3. **Manual Update**
+   - Reviewer edits or replaces the answer
+   - Original AI answer is preserved
+   - Status becomes `MANUAL_UPDATED`
+
+4. **Mark as Missing Data**
+   - Used when required information truly does not exist in documents
+   - Status becomes `MISSING_DATA`
+
+### Audit & Versioning Model
+
+To ensure auditability:
+
+- The original AI-generated answer is never overwritten
+- Manual edits are stored as a separate version linked to the same `Answer`
+- Timestamps and reviewer identity are recorded
+- Status transitions are logged
+
+This allows:
+
+- Comparison of AI vs. human answers
+- Tracking review decisions
+- Regulatory audit support
+
+### Review Workflow
+
+1. Project reaches `READY`
+2. Answers are generated asynchronously
+3. Reviewer opens Project Detail view
+4. Each question is reviewed individually
+5. Final project may move to `COMPLETED` once review is finished
+
+---
