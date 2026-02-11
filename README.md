@@ -513,3 +513,33 @@ Evaluation reports support:
 - Transparency in AI performance
 
 ---
+
+## Optional Chat Extension
+
+The system may optionally provide a chat interface that uses the same indexed document corpus.
+
+### Shared Retrieval Layer
+
+Chat uses:
+
+- The same document ingestion pipeline
+- The same chunk-level citation index
+- The same semantic retrieval system
+
+This ensures consistency between:
+
+- Questionnaire answers
+- Chat-based queries
+
+### Chat Constraints
+
+To avoid conflicting with questionnaire workflows:
+
+- Chat does not modify Project data
+- Chat responses are not stored as official questionnaire answers
+- Chat responses include citations
+- Chat responses include confidence indicators
+
+Chat is read-only with respect to questionnaire state.
+
+---
