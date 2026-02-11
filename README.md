@@ -655,3 +655,232 @@ The system preserves:
 This ensures traceability for compliance and regulatory contexts.
 
 ---
+
+## API Design (High-Level Contract Specification)
+
+This section defines the logical API surface of the system and maps request/response models to core entities. The API is asynchronous where appropriate and exposes explicit status tracking.
+
+All endpoints are scoped to an organization context.
+
+---
+
+### Document APIs
+
+#### Upload Document
+
+POST /documents
+
+Request:
+
+- file
+- metadata (optional)
+
+Response:
+
+- documentId
+- ingestionStatus = PENDING
+
+Behavior:
+
+- Stores file
+- Triggers asynchronous ingestion
+- Document moves: PENDING → PARSING → INDEXED or ERROR
+
+---
+
+#### Get Document Status
+
+GET /documents/{documentId}
+
+Response:
+
+- documentId
+- filename
+- ingestionStatus
+- metadata
+- createdAt
+
+---
+
+#### List Documents
+
+GET /documents
+
+Response:
+
+- List of documents with ingestionStatus and metadata
+
+---
+
+### Questionnaire APIs
+
+#### Upload Questionnaire
+
+POST /questionnaires
+
+Request:
+
+- file
+
+Response:
+
+- questionnaireId
+- sectionCount
+- questionCount
+- createdAt
+
+Behavior:
+
+- Parses file asynchronously if needed
+- Creates Question entities preserving order and section hierarchy
+
+---
+
+#### Get Questionnaire
+
+GET /questionnaires/{questionnaireId}
+
+Response:
+
+- questionnaire metadata
+- ordered sections
+- ordered questions
+
+---
+
+### Project APIs
+
+#### Create Project
+
+POST /projects
+
+Request:
+
+- name
+- questionnaireId
+- documentScope (list of documentIds or ALL_DOCS)
+
+Response:
+
+- projectId
+- status = CREATED
+
+Behavior:
+
+- Validates document readiness
+- Moves to INDEXING until dependencies satisfied
+- Transitions to READY
+
+---
+
+#### Get Project Status
+
+GET /projects/{projectId}
+
+Response:
+
+- projectId
+- status
+- questionCount
+- answeredCount
+- lastUpdated
+
+---
+
+#### Regenerate Project
+
+POST /projects/{projectId}/regenerate
+
+Behavior:
+
+- Allowed only if status = OUTDATED or READY
+- Re-runs answer generation
+- Preserves historical answers
+
+---
+
+### Answer APIs
+
+#### Generate Answers (Async Trigger)
+
+POST /projects/{projectId}/generate
+
+Behavior:
+
+- Queues background generation
+- Each question processed independently
+
+---
+
+#### Get Answers for Project
+
+GET /projects/{projectId}/answers
+
+Response:
+For each question:
+
+- questionId
+- answerText
+- answerable (TRUE / PARTIAL / FALSE)
+- confidenceScore
+- status
+- citations
+
+---
+
+#### Review Answer
+
+PATCH /answers/{answerId}
+
+Request:
+
+- status (CONFIRMED / REJECTED / MANUAL_UPDATED / MISSING_DATA)
+- manualAnswerText (optional)
+
+Behavior:
+
+- Stores manual version separately
+- Logs reviewer identity
+- Preserves original AI answer
+
+---
+
+### Evaluation APIs
+
+#### Evaluate Project
+
+POST /projects/{projectId}/evaluate
+
+Request:
+
+- groundTruthAnswers
+
+Behavior:
+
+- Compares AI answers to human answers
+- Generates EvaluationResult per question
+
+---
+
+#### Get Evaluation Report
+
+GET /projects/{projectId}/evaluation
+
+Response:
+
+- Per-question similarityScore
+- Explanation
+- Aggregate metrics
+- EvaluatedAt
+
+---
+
+### API Design Principles
+
+- All long-running operations are asynchronous
+- Every entity exposes explicit status
+- No AI answer is overwritten
+- Regeneration is deterministic and traceable
+- Every response model maps directly to a core data entity
+
+---
